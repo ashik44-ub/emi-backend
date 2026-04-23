@@ -1,0 +1,59 @@
+const router = require('express').Router();
+const Payment = require('../models/Payment');
+const auth = require('../middleware/auth');
+
+// Create a new payment
+router.post('/create', auth, async (req, res) => {
+  try {
+    const { amount, month, year, paymentMethod, transactionId } = req.body;
+    
+    // In this system, any user can make a payment for themselves. 
+    // If we wanted Admin to make payments for others, we'd accept userId in the body.
+    // For now, we use the logged-in user's ID.
+    const userId = req.body.userId && req.role === 'Admin' ? req.body.userId : req.user;
+
+    if (!amount || !month || !year || !paymentMethod || !transactionId) {
+      return res.status(400).json({ message: 'All payment fields are required.' });
+    }
+
+    const newPayment = new Payment({
+      userId,
+      amount,
+      month,
+      year,
+      paymentMethod,
+      transactionId
+    });
+
+    const savedPayment = await newPayment.save();
+    res.json(savedPayment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get user's payment history
+router.get('/history', auth, async (req, res) => {
+  try {
+    const userId = req.user;
+    const payments = await Payment.find({ userId }).sort({ createdAt: -1 });
+    res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: Get all payments
+router.get('/all', auth, async (req, res) => {
+  try {
+    if (req.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const payments = await Payment.find().populate('userId', 'fullName memberId').sort({ createdAt: -1 });
+    res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
