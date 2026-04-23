@@ -122,7 +122,8 @@ router.get('/yearly-summary', auth, async (req, res) => {
 
     res.json(summary);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Yearly Summary Error:', err);
+    res.status(500).json({ message: 'Failed to fetch yearly summary', error: err.message });
   }
 });
 

@@ -28,7 +28,8 @@ router.post('/create', auth, async (req, res) => {
     const savedPayment = await newPayment.save();
     res.json(savedPayment);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Payment Create Error:', err);
+    res.status(500).json({ message: 'Failed to create payment', error: err.message });
   }
 });
 

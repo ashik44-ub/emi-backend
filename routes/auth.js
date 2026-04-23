@@ -70,7 +70,8 @@ router.post('/register', async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Register Error:', err);
+    res.status(500).json({ message: 'Registration failed', error: err.message });
   }
 });
 
@@ -106,7 +107,8 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Login Error:', err);
+    res.status(500).json({ message: 'Login failed', error: err.message });
   }
 });
 
