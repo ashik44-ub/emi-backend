@@ -50,8 +50,51 @@ router.get('/all', auth, async (req, res) => {
     if (req.role !== 'Admin') {
       return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
-    const payments = await Payment.find().populate('userId', 'fullName memberId').sort({ createdAt: -1 });
+    const payments = await Payment.find().populate('userId', 'fullName memberId mobileNo').sort({ createdAt: -1 });
     res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// Admin: Get single payment
+router.get('/:id', auth, async (req, res) => {
+  try {
+    if (req.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const payment = await Payment.findById(req.params.id).populate('userId', 'fullName memberId mobileNo');
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found.' });
+    }
+    res.json(payment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: Update payment
+router.put('/:id', auth, async (req, res) => {
+  try {
+    if (req.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const { amount, month, year, paymentMethod, transactionId } = req.body;
+    
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found.' });
+    }
+
+    payment.amount = amount || payment.amount;
+    payment.month = month || payment.month;
+    payment.year = year || payment.year;
+    payment.paymentMethod = paymentMethod || payment.paymentMethod;
+    payment.transactionId = transactionId || payment.transactionId;
+
+    await payment.save();
+    res.json({ message: 'Payment updated successfully.', payment });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
