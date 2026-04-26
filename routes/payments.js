@@ -100,4 +100,21 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// Admin: Delete payment
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    if (req.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const payment = await Payment.findByIdAndDelete(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found.' });
+    }
+    res.json({ message: 'Payment deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
+
